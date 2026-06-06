@@ -1,0 +1,209 @@
+import { useState, useRef, useEffect } from 'react';
+import { Search, User, Bell, Settings, X, Sun, Moon, MoreVertical } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
+
+export default function Navbar({ onLoginClick, onSignUpClick, session, userProfile, setActivePage, searchQuery, setSearchQuery }) {
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem('theme') || 'dark';
+  });
+  const menuRef = useRef(null);
+
+  const handleSearchChange = (value) => {
+    setSearchQuery(value);
+    if (value.trim()) {
+      setActivePage('search');
+    }
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle Theme switching class toggle
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    if (theme === 'light') {
+      document.body.classList.add('light');
+    } else {
+      document.body.classList.remove('light');
+    }
+  }, [theme]);
+
+  return (
+    <nav className="navbar" id="main-navbar">
+      <div 
+        className="navbar-logo" 
+        id="navbar-logo" 
+        onClick={() => setActivePage('home')}
+        style={{ cursor: 'pointer', border: 'none', padding: '4px 0', background: 'none' }}
+      >
+        <img src="/logo.png" alt="Kusum Saree Dukaan" style={{ height: '84px', objectFit: 'contain', display: 'block' }} />
+      </div>
+
+      <div className="navbar-search">
+        {searchOpen ? (
+          <>
+            <Search className="search-icon" />
+            <input
+              id="search-input"
+              type="text"
+              placeholder="Search products..."
+              autoFocus
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
+          </>
+        ) : (
+          <input
+            id="search-input-collapsed"
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onFocus={() => setSearchOpen(true)}
+          />
+        )}
+      </div>
+
+      <div className="navbar-actions">
+        {searchOpen && (
+          <button
+            id="search-close-btn"
+            className="navbar-action-btn"
+            onClick={() => {
+              setSearchOpen(false);
+              setSearchQuery('');
+              setActivePage('home');
+            }}
+            aria-label="Close search"
+          >
+            <X />
+          </button>
+        )}
+
+        <div ref={menuRef} style={{ position: 'relative' }}>
+          <button
+            id="more-menu-btn"
+            className="navbar-action-btn"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label="More options"
+          >
+            <MoreVertical />
+          </button>
+          {menuOpen && (
+            <div className="menu-dropdown" id="menu-dropdown">
+              {/* Account Options */}
+              <div className="menu-group">
+                <div className="menu-group-label">ACCOUNT</div>
+                {session ? (
+                  <>
+                    <button
+                      className="menu-item"
+                      onClick={() => {
+                        setActivePage('profile');
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <User size={16} /> Profile
+                    </button>
+                    {userProfile?.acc_admin && (
+                      <button
+                        className="menu-item"
+                        onClick={() => {
+                          setActivePage('admin');
+                          setMenuOpen(false);
+                        }}
+                      >
+                        <Settings size={16} /> Admin Panel
+                      </button>
+                    )}
+                    <button
+                      className="menu-item"
+                      id="logout-link"
+                      onClick={async () => {
+                        await supabase.auth.signOut();
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <X size={16} /> Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      className="menu-item"
+                      id="login-link"
+                      onClick={() => {
+                        onLoginClick();
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <User size={16} /> Login
+                    </button>
+                    <button
+                      className="menu-item"
+                      id="signup-link"
+                      onClick={() => {
+                        onSignUpClick();
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <User size={16} /> Sign Up
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Updates/Notifications */}
+              <div className="menu-group">
+                <div className="menu-group-label">UPDATES</div>
+                <button
+                  className="menu-item"
+                  id="notifications-menu-btn"
+                  onClick={() => {
+                    alert('No new notifications');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <Bell size={16} /> Notifications
+                </button>
+              </div>
+
+              {/* Settings / Theme switcher */}
+              <div className="menu-group">
+                <div className="menu-group-label">THEME</div>
+                <button
+                  className={`menu-item ${theme === 'light' ? 'active' : ''}`}
+                  onClick={() => {
+                    setTheme('light');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <Sun size={16} /> Light Mode {theme === 'light' && '✓'}
+                </button>
+                <button
+                  className={`menu-item ${theme === 'dark' ? 'active' : ''}`}
+                  onClick={() => {
+                    setTheme('dark');
+                    setMenuOpen(false);
+                  }}
+                >
+                  <Moon size={16} /> Dark Mode {theme === 'dark' && '✓'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
