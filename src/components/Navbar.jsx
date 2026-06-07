@@ -1,13 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, User, Bell, Settings, X, Sun, Moon, MoreVertical } from 'lucide-react';
+import { Search, User, Bell, Settings, X, MoreVertical } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 export default function Navbar({ onLoginClick, onSignUpClick, session, userProfile, setActivePage, searchQuery, setSearchQuery }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('theme') || 'dark';
-  });
+  
   const menuRef = useRef(null);
 
   const handleSearchChange = (value) => {
@@ -28,15 +26,7 @@ export default function Navbar({ onLoginClick, onSignUpClick, session, userProfi
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Handle Theme switching class toggle
-  useEffect(() => {
-    localStorage.setItem('theme', theme);
-    if (theme === 'light') {
-      document.body.classList.add('light');
-    } else {
-      document.body.classList.remove('light');
-    }
-  }, [theme]);
+  
 
   return (
     <nav className="navbar" id="main-navbar">
@@ -178,28 +168,7 @@ export default function Navbar({ onLoginClick, onSignUpClick, session, userProfi
                 </button>
               </div>
 
-              {/* Settings / Theme switcher */}
-              <div className="menu-group">
-                <div className="menu-group-label">THEME</div>
-                <button
-                  className={`menu-item ${theme === 'light' ? 'active' : ''}`}
-                  onClick={() => {
-                    setTheme('light');
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Sun size={16} /> Light Mode {theme === 'light' && '✓'}
-                </button>
-                <button
-                  className={`menu-item ${theme === 'dark' ? 'active' : ''}`}
-                  onClick={() => {
-                    setTheme('dark');
-                    setMenuOpen(false);
-                  }}
-                >
-                  <Moon size={16} /> Dark Mode {theme === 'dark' && '✓'}
-                </button>
-              </div>
+              {/* Settings group removed per request */}
             </div>
           )}
         </div>
