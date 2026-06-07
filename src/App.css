@@ -182,3 +182,76 @@
     border-right-color: var(--border);
   }
 }
+
+/* Triangle buttons in the hero section */
+.hero {
+  .triangle-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    align-items: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    top: calc(100% + 12px);
+  }
+
+  .triangle {
+    width: 0;
+    height: 0;
+    border-left: 56px solid transparent;
+    border-right: 56px solid transparent;
+    background: transparent;
+    padding: 0;
+    border-radius: 6px;
+    cursor: default;
+  }
+
+  .triangle-up {
+    border-bottom: 96px solid var(--accent, #b11226);
+  }
+
+  .triangle-down {
+    border-top: 96px solid var(--accent, #b11226);
+  }
+
+  .triangle:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 6px;
+  }
+}
+
+/* Flat, high-specificity rules to ensure triangle buttons are visible */
+#hero-section .triangle-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  margin-top: 28px;
+  position: relative;
+  z-index: 10;
+}
+
+#hero-section .triangle {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 28px solid transparent;
+  border-right: 28px solid transparent;
+  background: transparent;
+  padding: 0;
+  cursor: default;
+}
+
+#hero-section .triangle-up {
+  border-bottom: 48px solid var(--accent, #ffffff);
+}
+
+#hero-section .triangle-down {
+  border-top: 48px solid var(--accent, #ffffff);
+}
+
+#hero-section .triangle:focus {
+  outline: 2px solid var(--accent, #ffffff);
+  outline-offset: 6px;
+}

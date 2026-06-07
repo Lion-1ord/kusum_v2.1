@@ -105,6 +105,12 @@ function App() {
             setSearchQuery={setSearchQuery}
           />
           <Hero activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+          <div className="hero-triangle-wrapper" aria-hidden="true">
+            <div className="triangle-buttons">
+              <button className="triangle triangle-up" aria-label="triangle up"></button>
+              <button className="triangle triangle-down" aria-label="triangle down"></button>
+            </div>
+          </div>
           <ProductList
             session={session}
             userProfile={userProfile}

@@ -425,7 +425,7 @@ select option {
 
 /* ===== HERO ===== */
 .hero {
-  padding: 48px 32px 32px;
+  padding: 18px 32px; /* reduced vertical padding to tighten gap between top/bottom bars */
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -435,8 +435,8 @@ select option {
   font-weight: 900;
   letter-spacing: 3px;
   text-transform: uppercase;
-  line-height: 1.1;
-  margin-bottom: 12px;
+  line-height: 1.05;
+  margin-bottom: 6px; /* tighter spacing under title */
 }
 
 .hero-subtitle {
@@ -445,8 +445,68 @@ select option {
   font-style: italic;
   color: var(--text-secondary);
   margin-top: 0;
-  margin-bottom: 24px;
+  margin-bottom: 6px; /* reduced space below subtitle */
   font-weight: 400;
+}
+
+#hero-section .triangle-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: calc(100% + 12px);
+  z-index: 20;
+}
+
+#hero-section .triangle {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 28px solid transparent;
+  border-right: 28px solid transparent;
+  background: transparent;
+  padding: 0;
+  cursor: default;
+}
+
+#hero-section .triangle-up {
+  border-bottom: 48px solid var(--accent, #ffffff);
+}
+
+#hero-section .triangle-down {
+  border-top: 48px solid var(--accent, #ffffff);
+}
+
+/* Triangle wrapper placed between hero and product list */
+.hero-triangle-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px; /* moved triangles a bit lower */
+}
+
+.hero-triangle-wrapper .triangle-buttons {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.hero-triangle-wrapper .triangle {
+  width: 0;
+  height: 0;
+  border-left: 56px solid transparent;
+  border-right: 56px solid transparent;
+  background: transparent;
+}
+
+.hero-triangle-wrapper .triangle-up {
+  border-bottom: 96px solid #ffd700; /* debug: bright gold */
+}
+
+.hero-triangle-wrapper .triangle-down {
+  border-top: 96px solid #ffd700; /* debug: bright gold */
 }
 
 
