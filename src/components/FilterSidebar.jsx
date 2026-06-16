@@ -246,9 +246,9 @@ export default function FilterSidebar({ onFiltersChange }) {
           style={{
             width: '100%',
             padding: '12px 16px',
-            background: 'linear-gradient(135deg, #6ee7b7, #3b82f6)',
-            border: 'none',
-            color: '#000',
+            background: '#374151',
+            border: '1px solid #4b5563',
+            color: '#d1d5db',
             borderRadius: '8px',
             cursor: 'pointer',
             fontSize: '14px',

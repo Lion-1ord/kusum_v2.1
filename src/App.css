@@ -197,22 +197,19 @@
   }
 
   .triangle {
-    width: 0;
-    height: 0;
-    border-left: 56px solid transparent;
-    border-right: 56px solid transparent;
-    background: transparent;
+    display: inline-block;
+    width: 56px;
+    height: 56px;
+    background: var(--accent, #ffd33d);
     padding: 0;
     border-radius: 6px;
-    cursor: default;
+    cursor: pointer;
+    border: none;
   }
 
-  .triangle-up {
-    border-bottom: 96px solid var(--accent, #b11226);
-  }
-
+  .triangle-up,
   .triangle-down {
-    border-top: 96px solid var(--accent, #b11226);
+    /* no triangle borders — both are squares */
   }
 
   .triangle:focus {
@@ -234,21 +231,17 @@
 
 #hero-section .triangle {
   display: inline-block;
-  width: 0;
-  height: 0;
-  border-left: 28px solid transparent;
-  border-right: 28px solid transparent;
-  background: transparent;
+  width: 56px;
+  height: 56px;
+  background: var(--accent, #ffffff);
   padding: 0;
-  cursor: default;
+  cursor: pointer;
+  border-radius: 6px;
 }
 
-#hero-section .triangle-up {
-  border-bottom: 48px solid var(--accent, #ffffff);
-}
-
+#hero-section .triangle-up,
 #hero-section .triangle-down {
-  border-top: 48px solid var(--accent, #ffffff);
+  /* both are squares */
 }
 
 #hero-section .triangle:focus {

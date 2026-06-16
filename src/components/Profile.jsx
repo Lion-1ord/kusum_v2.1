@@ -300,9 +300,9 @@ export default function Profile({ session, userProfile, setUserProfile, userCart
           {message.text && (
             <div style={{
               padding: '12px', marginBottom: '20px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px',
-              backgroundColor: message.type === 'success' ? 'rgba(74, 222, 128, 0.1)' : 'rgba(248, 113, 113, 0.1)',
-              color: message.type === 'success' ? '#4ade80' : '#f87171',
-              border: `1px solid ${message.type === 'success' ? '#4ade80' : '#f87171'}`
+              backgroundColor: 'rgba(255, 255, 255, 0.05)',
+              color: '#d1d5db',
+              border: '1px solid rgba(255, 255, 255, 0.2)'
             }}>
               {message.type === 'success' ? <Check size={18} /> : <AlertCircle size={18} />}
               {message.text}
@@ -394,12 +394,12 @@ export default function Profile({ session, userProfile, setUserProfile, userCart
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</div>
-                      <div style={{ fontSize: '11px', color: '#6ee7b7', fontWeight: 600 }}>₹{item.product_saleprice}</div>
+                      <div style={{ fontSize: '11px', color: '#a3a3a3', fontWeight: 600 }}>₹{item.product_saleprice}</div>
                     </div>
                     <button 
                       onClick={() => removeFromCart(item.product_id)}
                       style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
-                      onMouseOver={e => e.currentTarget.style.color = '#f87171'}
+                      onMouseOver={e => e.currentTarget.style.color = '#ffffff'}
                       onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
                     >
                       <Trash2 size={14} />
@@ -441,9 +441,9 @@ export default function Profile({ session, userProfile, setUserProfile, userCart
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</div>
-                      <div style={{ fontSize: '11px', color: '#6ee7b7', fontWeight: 600 }}>₹{item.product_saleprice}</div>
+                      <div style={{ fontSize: '11px', color: '#a3a3a3', fontWeight: 600 }}>₹{item.product_saleprice}</div>
                     </div>
-                    <div style={{ fontSize: '10px', color: '#4ade80', background: 'rgba(74, 222, 128, 0.1)', padding: '3px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    <div style={{ fontSize: '10px', color: '#a3a3a3', background: 'rgba(255, 255, 255, 0.08)', padding: '3px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '3px', flexShrink: 0, whiteSpace: 'nowrap' }}>
                       <Check size={12} /> Ordered
                     </div>
                   </div>
@@ -464,7 +464,7 @@ export default function Profile({ session, userProfile, setUserProfile, userCart
           {/* Wishlist Section */}
           <div className="profile-wishlist-section" style={{ background: 'rgba(255,255,255,0.03)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px', fontSize: '16px', fontWeight: 600 }}>
-              <Heart size={20} style={{ color: '#ff3b30' }} /> My Wishlist
+              <Heart size={20} style={{ color: '#ffffff' }} /> My Wishlist
             </h3>
             
             {loadingWishlist ? (
@@ -483,12 +483,12 @@ export default function Profile({ session, userProfile, setUserProfile, userCart
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '12px', fontWeight: 600, color: '#fff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.product_name}</div>
-                      <div style={{ fontSize: '11px', color: '#ff3b30', fontWeight: 600 }}>₹{item.product_saleprice}</div>
+                      <div style={{ fontSize: '11px', color: '#a3a3a3', fontWeight: 600 }}>₹{item.product_saleprice}</div>
                     </div>
                     <button 
                       onClick={() => removeFromWishlist(item.product_id)}
                       style={{ background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '4px', flexShrink: 0 }}
-                      onMouseOver={e => e.currentTarget.style.color = '#f87171'}
+                      onMouseOver={e => e.currentTarget.style.color = '#ffffff'}
                       onMouseOut={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
                     >
                       <Trash2 size={14} />

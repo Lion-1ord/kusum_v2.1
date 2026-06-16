@@ -66,12 +66,20 @@ export default function SignUpModal({ onClose, onLoginClick }) {
 
       if (authError) throw authError;
 
-      // 2. Insert into custom "user_details" table
+      // Determine a UUID to use for the user_details.user_id column.
+      // Prefer the auth user's id returned from Supabase; fall back to
+      // a generated UUID using the browser `crypto.randomUUID()` API.
+      const authUserId = authData?.user?.id;
+      const generatedId = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : null;
+      const userId = authUserId ?? generatedId;
+      if (!userId) throw new Error('Could not determine a user_id for user_details');
+
+      // 2. Insert into custom "user_details" table, including `user_id`.
       const { password, ...dbData } = formData;
       const { error: dbError } = await supabase
         .from('user_details')
         .insert([{
-          // If auth successful, link to auth.users if needed, else just insert raw data
+          user_id: userId,
           ...dbData
         }]);
 

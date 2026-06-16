@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from './lib/supabaseClient';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -32,6 +32,128 @@ function App() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const [bgOverride, setBgOverride] = useState(null);
+  const originalStylesRef = useRef(null);
+
+  const applyPalette = (palette, mode) => {
+    if (!palette) return;
+
+    if (!originalStylesRef.current) {
+      const body = document.body;
+      const navbar = document.querySelector('.navbar');
+      const heroEl = document.querySelector('.hero');
+      originalStylesRef.current = {
+        bodyBg: body ? getComputedStyle(body).backgroundColor : null,
+        navbarBg: navbar ? getComputedStyle(navbar).backgroundColor : null,
+        heroBg: heroEl ? getComputedStyle(heroEl).backgroundColor : null,
+      };
+    }
+
+    const primaryColor = palette.primary || '#000000';
+    const secondaryColor = palette.secondary || '#cccccc';
+    const tertiaryColor = palette.tertiary || '#ffffff';
+
+    // Set CSS variables on document element
+    document.documentElement.style.setProperty('--bg-primary', primaryColor);
+    document.documentElement.style.setProperty('--bg-secondary', primaryColor);
+    document.documentElement.style.setProperty('--bg-card', primaryColor);
+    document.documentElement.style.setProperty('--bg-elevated', primaryColor);
+
+    document.documentElement.style.setProperty('--text-primary', secondaryColor);
+    document.documentElement.style.setProperty('--text-secondary', secondaryColor);
+    document.documentElement.style.setProperty('--text-muted', secondaryColor);
+
+    document.documentElement.style.setProperty('--accent', tertiaryColor);
+    document.documentElement.style.setProperty('--border-color', tertiaryColor);
+
+    const body = document.body;
+    const navbar = document.querySelector('.navbar');
+    const heroEl = document.querySelector('.hero');
+
+    if (body) body.style.backgroundColor = primaryColor;
+    if (navbar) navbar.style.backgroundColor = primaryColor;
+    if (heroEl) heroEl.style.backgroundColor = primaryColor;
+
+    if (mode === 'red') {
+      document.documentElement.classList.remove('mode-green');
+      document.documentElement.classList.add('mode-red');
+    } else {
+      document.documentElement.classList.remove('mode-red');
+      document.documentElement.classList.add('mode-green');
+    }
+
+    setBgOverride(primaryColor);
+  };
+
+  const setGreenBackground = async () => {
+    try {
+      const { data: budData } = await supabase
+        .from('bud_color_pal')
+        .select('*')
+        .eq('activation', true)
+        .order('color_serial', { ascending: false })
+        .limit(1);
+      
+      const palette = (budData && budData.length > 0) ? budData[0] : null;
+      if (palette) {
+        applyPalette(palette, 'green');
+      } else {
+        applyPalette({ primary: '#121212', secondary: '#999999', tertiary: '#ffffff' }, 'green');
+      }
+    } catch (err) {
+      console.error(err);
+      applyPalette({ primary: '#121212', secondary: '#999999', tertiary: '#ffffff' }, 'green');
+    }
+  };
+
+  const setRedBackground = async () => {
+    try {
+      const { data: preData } = await supabase
+        .from('pre_color_pal')
+        .select('*')
+        .eq('activation', true)
+        .order('color_serial', { ascending: false })
+        .limit(1);
+      
+      const palette = (preData && preData.length > 0) ? preData[0] : null;
+      if (palette) {
+        applyPalette(palette, 'red');
+      } else {
+        applyPalette({ primary: '#1a1a1a', secondary: '#cccccc', tertiary: '#ffffff' }, 'red');
+      }
+    } catch (err) {
+      console.error(err);
+      applyPalette({ primary: '#1a1a1a', secondary: '#cccccc', tertiary: '#ffffff' }, 'red');
+    }
+  };
+
+  const restoreOriginalBackground = () => {
+    const orig = originalStylesRef.current || {};
+
+    document.documentElement.style.removeProperty('--bg-primary');
+    document.documentElement.style.removeProperty('--bg-secondary');
+    document.documentElement.style.removeProperty('--bg-card');
+    document.documentElement.style.removeProperty('--bg-elevated');
+    document.documentElement.style.removeProperty('--text-primary');
+    document.documentElement.style.removeProperty('--text-secondary');
+    document.documentElement.style.removeProperty('--text-muted');
+    document.documentElement.style.removeProperty('--accent');
+    document.documentElement.style.removeProperty('--border-color');
+
+    const body = document.body;
+    const navbar = document.querySelector('.navbar');
+    const heroEl = document.querySelector('.hero');
+
+    if (body) body.style.backgroundColor = orig.bodyBg || '';
+    if (navbar) navbar.style.backgroundColor = orig.navbarBg || '';
+    if (heroEl) heroEl.style.backgroundColor = orig.heroBg || '';
+
+    originalStylesRef.current = null;
+    document.documentElement.classList.remove('mode-red');
+    document.documentElement.classList.remove('mode-green');
+    setBgOverride(null);
+  };
 
   useEffect(() => {
     async function fetchProfileAndCart() {
@@ -94,7 +216,7 @@ function App() {
   return (
     <>
       {activePage === 'home' ? (
-        <div className={activeCategory}>
+        <div className={activeCategory} style={bgOverride ? { backgroundColor: bgOverride } : undefined}>
           <Navbar 
             onLoginClick={() => setActiveModal('login')}
             onSignUpClick={() => setActiveModal('signup')}
@@ -105,10 +227,18 @@ function App() {
             setSearchQuery={setSearchQuery}
           />
           <Hero activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-          <div className="hero-triangle-wrapper" aria-hidden="true">
+          <div className="hero-triangle-wrapper">
             <div className="triangle-buttons">
-              <button className="triangle triangle-up" aria-label="triangle up"></button>
-              <button className="triangle triangle-down" aria-label="triangle down"></button>
+              <button
+                className="triangle triangle-up"
+                aria-label="square one"
+                onClick={setRedBackground}
+              ></button>
+              <button
+                className="triangle triangle-down"
+                aria-label="square two"
+                onClick={setGreenBackground}
+              ></button>
             </div>
           </div>
           <ProductList

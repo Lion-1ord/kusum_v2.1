@@ -5,3 +5,25 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Note: product media/storage helpers removed as requested.
+
+/*
+Usage example:
+
+import { uploadProductMedia, uploadMultipleProductMedia, createProductFolder } from './lib/supabaseClient';
+
+// After creating a product and getting its UUID `productId`:
+// Optionally create the folder (not required — uploading will create it implicitly)
+// await createProductFolder(productId);
+
+// Upload multiple files (FileList -> array of File)
+// const results = await uploadMultipleProductMedia(productId, filesArray);
+
+// Upload a single file
+// const { data, publicURL } = await uploadProductMedia(productId, file);
+
+Notes:
+- Files must be `File` or `Blob` objects (browser uploads).
+- Objects are stored under `product_media/{productId}/<filename>`.
+*/
+
