@@ -68,7 +68,7 @@ export default function AdminPanel() {
 
   // Product form state
   const [product, setProduct] = useState(EMPTY_PRODUCT);
-  // media state removed
+  const [mediaFiles, setMediaFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState('');
   const fileRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
@@ -83,6 +83,9 @@ export default function AdminPanel() {
   const [budgetTertiary, setBudgetTertiary] = useState('');
   const [premiumSubmitting, setPremiumSubmitting] = useState(false);
   const [budgetSubmitting, setBudgetSubmitting] = useState(false);
+
+  const [activePremiumPalette, setActivePremiumPalette] = useState(null);
+  const [activeBudgetPalette, setActiveBudgetPalette] = useState(null);
 
   const fetchData = async () => {
     try {
@@ -105,6 +108,12 @@ export default function AdminPanel() {
 
       const { data: charkhaData } = await supabase.from('charkha_sale_list').select('*');
       if (charkhaData) setCharkhaSalesData(charkhaData);
+
+      const { data: prePalData } = await supabase.from('pre_color_pal').select('*').eq('activation', true).limit(1);
+      if (prePalData && prePalData.length > 0) setActivePremiumPalette(prePalData[0]);
+
+      const { data: budPalData } = await supabase.from('bud_color_pal').select('*').eq('activation', true).limit(1);
+      if (budPalData && budPalData.length > 0) setActiveBudgetPalette(budPalData[0]);
     } catch (err) {
       console.error('Fetch error:', err);
     }
@@ -141,7 +150,11 @@ export default function AdminPanel() {
     setProduct(p => ({ ...p, [field]: value }));
   };
 
-  // Media upload UI/handlers removed per request
+  const handleFileChange = (e) => {
+    if (e.target.files) {
+      setMediaFiles(Array.from(e.target.files));
+    }
+  };
 
   const toggleTag = (tagId) => {
     setProduct(p => {
@@ -180,6 +193,28 @@ export default function AdminPanel() {
     try {
       // Generate a unique ID (UUID) for the product
       const productId = crypto.randomUUID();
+      
+      const mediaUrls = [];
+      if (mediaFiles.length > 0) {
+        for (let i = 0; i < mediaFiles.length; i++) {
+          const file = mediaFiles[i];
+          const fileExt = file.name.split('.').pop();
+          const fileName = `${productId}_${i + 1}.${fileExt}`;
+          
+          const { error: uploadError } = await supabase.storage
+            .from('product_media_assets')
+            .upload(fileName, file);
+            
+          if (uploadError) throw new Error(uploadError.message);
+          
+          const { data: publicUrlData } = supabase.storage
+            .from('product_media_assets')
+            .getPublicUrl(fileName);
+            
+          mediaUrls.push(publicUrlData.publicUrl);
+        }
+      }
+
       setSubmitStatus('Saving product...');
       const payload = {
         product_id: productId,
@@ -192,11 +227,17 @@ export default function AdminPanel() {
         product_rui: product.product_rui,
         product_tag1: product.product_tags[0] || null,
         product_tag2: product.product_tags[1] || null,
+        product_media1: mediaUrls[0] || null,
+        product_media2: mediaUrls[1] || null,
+        product_media3: mediaUrls[2] || null,
+        product_media4: mediaUrls[3] || null,
+        product_media5: mediaUrls[4] || null,
       };
       const { error } = await supabase.from('products').insert([payload]);
       if (error) throw new Error(error.message);
       setSubmitStatus('');
       setProduct(EMPTY_PRODUCT);
+      setMediaFiles([]);
       setActiveModal(null);
       alert(status === 'live' ? 'Product is now LIVE!' : 'Product saved as draft.');
     } catch (err) {
@@ -242,6 +283,7 @@ export default function AdminPanel() {
 
       alert('Palette saved and activated');
       if (typeof resetFn === 'function') resetFn();
+      fetchData();
     } catch (err) {
       console.error('Palette save error:', err);
       alert('Error saving palette: ' + (err.message || JSON.stringify(err)));
@@ -250,7 +292,7 @@ export default function AdminPanel() {
     }
   };
 
-  const closeProduct = () => { setProduct(EMPTY_PRODUCT); setActiveModal(null); setSubmitStatus(''); };
+  const closeProduct = () => { setProduct(EMPTY_PRODUCT); setMediaFiles([]); setActiveModal(null); setSubmitStatus(''); };
   
   // Generate chart data based on time period and product type using real data
   const generateChartData = () => {
@@ -785,6 +827,26 @@ export default function AdminPanel() {
               <div style={{ background:'rgba(0,0,0,0.28)', borderRadius:'12px', border:'1px solid rgba(255,255,255,0.06)', padding:'20px' }}>
                 <h3 style={{ margin:'0 0 16px 0', fontSize:'16px', color:COLORS.TEXT }}>Premium Palette</h3>
 
+                {activePremiumPalette && (
+                  <div style={{ marginBottom: '20px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: `1px solid ${COLORS.BORDER}` }}>
+                    <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>Currently Active</p>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: activePremiumPalette.primary || 'transparent', border: `1px solid ${COLORS.BORDER}` }} />
+                        <span style={{ fontSize: '10px', color: COLORS.TEXT }}>{activePremiumPalette.primary || 'N/A'}</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: activePremiumPalette.secondary || 'transparent', border: `1px solid ${COLORS.BORDER}` }} />
+                        <span style={{ fontSize: '10px', color: COLORS.TEXT }}>{activePremiumPalette.secondary || 'N/A'}</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: activePremiumPalette.tertiary || 'transparent', border: `1px solid ${COLORS.BORDER}` }} />
+                        <span style={{ fontSize: '10px', color: COLORS.TEXT }}>{activePremiumPalette.tertiary || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div style={FIELD}>
                   <label style={LABEL_STYLE}>Primary Color</label>
                   <div style={{ display:'flex', gap:'12px', alignItems:'center' }}>
@@ -817,6 +879,26 @@ export default function AdminPanel() {
               {/* Budget Palette */}
               <div style={{ background:'rgba(0,0,0,0.28)', borderRadius:'12px', border:'1px solid rgba(255,255,255,0.06)', padding:'20px' }}>
                 <h3 style={{ margin:'0 0 16px 0', fontSize:'16px', color:COLORS.TEXT }}>Budget Palette</h3>
+
+                {activeBudgetPalette && (
+                  <div style={{ marginBottom: '20px', padding: '12px', background: 'rgba(255,255,255,0.03)', borderRadius: '8px', border: `1px solid ${COLORS.BORDER}` }}>
+                    <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase' }}>Currently Active</p>
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: activeBudgetPalette.primary || 'transparent', border: `1px solid ${COLORS.BORDER}` }} />
+                        <span style={{ fontSize: '10px', color: COLORS.TEXT }}>{activeBudgetPalette.primary || 'N/A'}</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: activeBudgetPalette.secondary || 'transparent', border: `1px solid ${COLORS.BORDER}` }} />
+                        <span style={{ fontSize: '10px', color: COLORS.TEXT }}>{activeBudgetPalette.secondary || 'N/A'}</span>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 4, background: activeBudgetPalette.tertiary || 'transparent', border: `1px solid ${COLORS.BORDER}` }} />
+                        <span style={{ fontSize: '10px', color: COLORS.TEXT }}>{activeBudgetPalette.tertiary || 'N/A'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div style={FIELD}>
                   <label style={LABEL_STYLE}>Primary Color</label>
@@ -997,7 +1079,26 @@ export default function AdminPanel() {
               </div>
             </div>
 
-            {/* Images UI removed */}
+            {/* Images UI */}
+            <div style={{ marginBottom: '24px' }}>
+              <label style={LABEL_STYLE}>Product Images (Select multiple)</label>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ ...INPUT_STYLE, padding: '8px' }}
+              />
+              {mediaFiles.length > 0 && (
+                <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+                  {mediaFiles.map((file, idx) => (
+                    <div key={idx} style={{ fontSize: '12px', color: COLORS.ACCENT, background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>
+                      {file.name}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
 
             {/* Tags grouped by category */}
             <div style={{ marginBottom:'28px' }}>

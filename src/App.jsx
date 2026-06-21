@@ -7,6 +7,7 @@ import SearchResults from './components/SearchResults';
 import LoginModal from './components/LoginModal';
 import SignUpModal from './components/SignUpModal';
 import Profile from './components/Profile';
+import ProductDetail from './components/ProductDetail';
 import AdminPanel from './components/AdminPanel';
 
 function App() {
@@ -15,8 +16,9 @@ function App() {
   const [userProfile, setUserProfile] = useState(null);
   const [userCart, setUserCart] = useState(null);
   const [userWishlist, setUserWishlist] = useState(null);
-  const [activePage, setActivePage] = useState('home'); // 'home', 'profile', 'admin', 'search'
+  const [activePage, setActivePage] = useState('home'); // 'home', 'profile', 'admin', 'search', 'product'
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const [activeCategory, setActiveCategory] = useState('hydrangea'); // 'hydrangea' or 'cotton'
 
   useEffect(() => {
@@ -36,6 +38,15 @@ function App() {
   const [bgOverride, setBgOverride] = useState(null);
   const originalStylesRef = useRef(null);
 
+  const hexToRgba = (hex, alpha) => {
+    const h = (hex || '#000000').replace('#', '');
+    if (h.length !== 6) return `rgba(255, 255, 255, ${alpha})`;
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
   const applyPalette = (palette, mode) => {
     if (!palette) return;
 
@@ -54,18 +65,23 @@ function App() {
     const secondaryColor = palette.secondary || '#cccccc';
     const tertiaryColor = palette.tertiary || '#ffffff';
 
-    // Set CSS variables on document element
+    // Primary → page backgrounds
     document.documentElement.style.setProperty('--bg-primary', primaryColor);
     document.documentElement.style.setProperty('--bg-secondary', primaryColor);
     document.documentElement.style.setProperty('--bg-card', primaryColor);
     document.documentElement.style.setProperty('--bg-elevated', primaryColor);
 
+    // Secondary → text on main page and product tiles
     document.documentElement.style.setProperty('--text-primary', secondaryColor);
     document.documentElement.style.setProperty('--text-secondary', secondaryColor);
-    document.documentElement.style.setProperty('--text-muted', secondaryColor);
+    document.documentElement.style.setProperty('--text-muted', hexToRgba(secondaryColor, 0.55));
 
+    // Tertiary → icons, borders, and other minute details
     document.documentElement.style.setProperty('--accent', tertiaryColor);
+    document.documentElement.style.setProperty('--icon-color', tertiaryColor);
     document.documentElement.style.setProperty('--border-color', tertiaryColor);
+    document.documentElement.style.setProperty('--border-subtle', hexToRgba(tertiaryColor, 0.15));
+    document.documentElement.style.setProperty('--border-medium', hexToRgba(tertiaryColor, 0.3));
 
     const body = document.body;
     const navbar = document.querySelector('.navbar');
@@ -139,7 +155,10 @@ function App() {
     document.documentElement.style.removeProperty('--text-secondary');
     document.documentElement.style.removeProperty('--text-muted');
     document.documentElement.style.removeProperty('--accent');
+    document.documentElement.style.removeProperty('--icon-color');
     document.documentElement.style.removeProperty('--border-color');
+    document.documentElement.style.removeProperty('--border-subtle');
+    document.documentElement.style.removeProperty('--border-medium');
 
     const body = document.body;
     const navbar = document.querySelector('.navbar');
@@ -213,6 +232,17 @@ function App() {
     }
   };
 
+  const handleProductClick = (productId) => {
+    setSelectedProductId(productId);
+    setActivePage('product');
+  };
+
+  const handleGoHome = () => {
+    setSelectedProductId(null);
+    setActivePage('home');
+    setSearchQuery('');
+  };
+
   return (
     <>
       {activePage === 'home' ? (
@@ -223,6 +253,7 @@ function App() {
             session={session}
             userProfile={userProfile}
             setActivePage={setActivePage}
+            onGoHome={handleGoHome}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
           />
@@ -241,15 +272,7 @@ function App() {
               ></button>
             </div>
           </div>
-          <ProductList
-            session={session}
-            userProfile={userProfile}
-            userCart={userCart}
-            userWishlist={userWishlist}
-            onCartUpdate={refreshCart}
-            onWishlistUpdate={refreshWishlist}
-            activeCategory={activeCategory}
-          />
+          <ProductList onProductClick={handleProductClick} />
         </div>
       ) : (
         <>
@@ -259,19 +282,22 @@ function App() {
             session={session}
             userProfile={userProfile}
             setActivePage={setActivePage}
+            onGoHome={handleGoHome}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
           />
 
           {activePage === 'search' && (
             <SearchResults
-              session={session}
-              userProfile={userProfile}
-              userCart={userCart}
-              userWishlist={userWishlist}
-              onCartUpdate={refreshCart}
-              onWishlistUpdate={refreshWishlist}
               searchQuery={searchQuery}
+              onProductClick={handleProductClick}
+            />
+          )}
+
+          {activePage === 'product' && (
+            <ProductDetail
+              productId={selectedProductId}
+              onBack={handleGoHome}
             />
           )}
 

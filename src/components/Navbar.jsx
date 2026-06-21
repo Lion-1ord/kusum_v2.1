@@ -2,11 +2,20 @@ import { useState, useRef, useEffect } from 'react';
 import { Search, User, Bell, Settings, X, MoreVertical } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-export default function Navbar({ onLoginClick, onSignUpClick, session, userProfile, setActivePage, searchQuery, setSearchQuery }) {
+export default function Navbar({ onLoginClick, onSignUpClick, session, userProfile, setActivePage, onGoHome, searchQuery, setSearchQuery }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   
   const menuRef = useRef(null);
+
+  const goHome = () => {
+    if (onGoHome) {
+      onGoHome();
+    } else {
+      setActivePage('home');
+      setSearchQuery('');
+    }
+  };
 
   const handleSearchChange = (value) => {
     setSearchQuery(value);
@@ -33,7 +42,7 @@ export default function Navbar({ onLoginClick, onSignUpClick, session, userProfi
       <div 
         className="navbar-logo" 
         id="navbar-logo" 
-        onClick={() => setActivePage('home')}
+        onClick={goHome}
         style={{ cursor: 'pointer', border: 'none', padding: '4px 0', background: 'none' }}
       >
         <img src="/logo.png" alt="Kusum Saree Dukaan" style={{ height: '84px', objectFit: 'contain', display: 'block' }} />
@@ -72,7 +81,7 @@ export default function Navbar({ onLoginClick, onSignUpClick, session, userProfi
             onClick={() => {
               setSearchOpen(false);
               setSearchQuery('');
-              setActivePage('home');
+              goHome();
             }}
             aria-label="Close search"
           >
