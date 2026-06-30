@@ -1,18 +1,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { Search, User, Bell, Settings, X, MoreVertical } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
-export default function Navbar({ onLoginClick, onSignUpClick, session, userProfile, setActivePage, onGoHome, searchQuery, setSearchQuery }) {
+export default function Navbar({ onLoginClick, onSignUpClick, session, userProfile, onGoHome, searchQuery, setSearchQuery }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   const goHome = () => {
     if (onGoHome) {
       onGoHome();
     } else {
-      setActivePage('home');
+      navigate('/');
       setSearchQuery('');
     }
   };
@@ -20,7 +22,7 @@ export default function Navbar({ onLoginClick, onSignUpClick, session, userProfi
   const handleSearchChange = (value) => {
     setSearchQuery(value);
     if (value.trim()) {
-      setActivePage('search');
+      navigate('/search');
     }
   };
 
@@ -108,7 +110,7 @@ export default function Navbar({ onLoginClick, onSignUpClick, session, userProfi
                     <button
                       className="menu-item"
                       onClick={() => {
-                        setActivePage('profile');
+                        navigate('/profile');
                         setMenuOpen(false);
                       }}
                     >
@@ -118,7 +120,7 @@ export default function Navbar({ onLoginClick, onSignUpClick, session, userProfi
                       <button
                         className="menu-item"
                         onClick={() => {
-                          setActivePage('admin');
+                          navigate('/admin');
                           setMenuOpen(false);
                         }}
                       >

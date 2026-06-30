@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from './lib/supabaseClient';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -16,10 +17,11 @@ function App() {
   const [userProfile, setUserProfile] = useState(null);
   const [userCart, setUserCart] = useState(null);
   const [userWishlist, setUserWishlist] = useState(null);
-  const [activePage, setActivePage] = useState('home'); // 'home', 'profile', 'admin', 'search', 'product'
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProductId, setSelectedProductId] = useState(null);
-  const [activeCategory, setActiveCategory] = useState('hydrangea'); // 'hydrangea' or 'cotton'
+  const [activeCategory, setActiveCategory] = useState('hydrangea');
+
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -32,10 +34,13 @@ function App() {
       setSession(session);
     });
 
+    setRedBackground();
+
     return () => subscription.unsubscribe();
   }, []);
 
   const [bgOverride, setBgOverride] = useState(null);
+  const [appMode, setAppMode] = useState('premium');
   const originalStylesRef = useRef(null);
 
   const hexToRgba = (hex, alpha) => {
@@ -65,18 +70,15 @@ function App() {
     const secondaryColor = palette.secondary || '#cccccc';
     const tertiaryColor = palette.tertiary || '#ffffff';
 
-    // Primary → page backgrounds
     document.documentElement.style.setProperty('--bg-primary', primaryColor);
     document.documentElement.style.setProperty('--bg-secondary', primaryColor);
     document.documentElement.style.setProperty('--bg-card', primaryColor);
     document.documentElement.style.setProperty('--bg-elevated', primaryColor);
 
-    // Secondary → text on main page and product tiles
     document.documentElement.style.setProperty('--text-primary', secondaryColor);
     document.documentElement.style.setProperty('--text-secondary', secondaryColor);
     document.documentElement.style.setProperty('--text-muted', hexToRgba(secondaryColor, 0.55));
 
-    // Tertiary → icons, borders, and other minute details
     document.documentElement.style.setProperty('--accent', tertiaryColor);
     document.documentElement.style.setProperty('--icon-color', tertiaryColor);
     document.documentElement.style.setProperty('--border-color', tertiaryColor);
@@ -103,6 +105,7 @@ function App() {
   };
 
   const setGreenBackground = async () => {
+    setAppMode('budget');
     try {
       const { data: budData } = await supabase
         .from('bud_color_pal')
@@ -124,6 +127,7 @@ function App() {
   };
 
   const setRedBackground = async () => {
+    setAppMode('premium');
     try {
       const { data: preData } = await supabase
         .from('pre_color_pal')
@@ -177,7 +181,6 @@ function App() {
   useEffect(() => {
     async function fetchProfileAndCart() {
       if (session?.user?.email) {
-        // Fetch user profile
         const { data: profileData } = await supabase
           .from('user_details')
           .select('*')
@@ -185,7 +188,6 @@ function App() {
           .single();
         if (profileData) setUserProfile(profileData);
 
-        // Fetch user cart
         const { data: cartData } = await supabase
           .from('user_carts')
           .select('*')
@@ -193,7 +195,6 @@ function App() {
           .single();
         setUserCart(cartData || null);
 
-        // Fetch user wishlist
         const { data: wishlistData } = await supabase
           .from('user_wishlist')
           .select('*')
@@ -204,7 +205,9 @@ function App() {
         setUserProfile(null);
         setUserCart(null);
         setUserWishlist(null);
-        setActivePage('home');
+        if (location.pathname === '/profile' || location.pathname === '/admin') {
+          navigate('/');
+        }
       }
     }
     fetchProfileAndCart();
@@ -233,91 +236,76 @@ function App() {
   };
 
   const handleProductClick = (productId) => {
-    setSelectedProductId(productId);
-    setActivePage('product');
+    navigate(`/product/${productId}`);
   };
 
   const handleGoHome = () => {
-    setSelectedProductId(null);
-    setActivePage('home');
+    navigate('/');
     setSearchQuery('');
   };
 
   return (
-    <>
-      {activePage === 'home' ? (
-        <div className={activeCategory} style={bgOverride ? { backgroundColor: bgOverride } : undefined}>
-          <Navbar 
-            onLoginClick={() => setActiveModal('login')}
-            onSignUpClick={() => setActiveModal('signup')}
-            session={session}
-            userProfile={userProfile}
-            setActivePage={setActivePage}
-            onGoHome={handleGoHome}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
-          <Hero activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-          <div className="hero-triangle-wrapper">
-            <div className="triangle-buttons">
-              <button
-                className="triangle triangle-up"
-                aria-label="square one"
-                onClick={setRedBackground}
-              ></button>
-              <button
-                className="triangle triangle-down"
-                aria-label="square two"
-                onClick={setGreenBackground}
-              ></button>
+    <div className={location.pathname === '/' ? activeCategory : ''} style={bgOverride ? { backgroundColor: bgOverride, minHeight: '100vh' } : { minHeight: '100vh' }}>
+      <Navbar 
+        onLoginClick={() => setActiveModal('login')}
+        onSignUpClick={() => setActiveModal('signup')}
+        session={session}
+        userProfile={userProfile}
+        onGoHome={handleGoHome}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+      />
+
+      <Routes>
+        <Route path="/" element={
+          <>
+            <Hero activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
+            <div className="hero-triangle-wrapper">
+              <div className="triangle-buttons">
+                <button
+                  className="theme-btn square-btn"
+                  onClick={setRedBackground}
+                >Premium</button>
+                <button
+                  className="theme-btn square-btn"
+                  onClick={setGreenBackground}
+                >Budget</button>
+              </div>
             </div>
-          </div>
-          <ProductList onProductClick={handleProductClick} />
-        </div>
-      ) : (
-        <>
-          <Navbar 
-            onLoginClick={() => setActiveModal('login')}
-            onSignUpClick={() => setActiveModal('signup')}
+            <ProductList onProductClick={handleProductClick} appMode={appMode} />
+          </>
+        } />
+        
+        <Route path="/search" element={
+          <SearchResults
+            searchQuery={searchQuery}
+            onProductClick={handleProductClick}
+          />
+        } />
+
+        <Route path="/product/:id" element={
+          <ProductDetail
+            onBack={handleGoHome}
+            appMode={appMode}
+          />
+        } />
+
+        <Route path="/profile" element={
+          <Profile
             session={session}
             userProfile={userProfile}
-            setActivePage={setActivePage}
-            onGoHome={handleGoHome}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
+            setUserProfile={setUserProfile}
+            userCart={userCart}
+            setUserCart={setUserCart}
+            userWishlist={userWishlist}
+            onWishlistUpdate={refreshWishlist}
           />
+        } />
 
-          {activePage === 'search' && (
-            <SearchResults
-              searchQuery={searchQuery}
-              onProductClick={handleProductClick}
-            />
-          )}
-
-          {activePage === 'product' && (
-            <ProductDetail
-              productId={selectedProductId}
-              onBack={handleGoHome}
-            />
-          )}
-
-          {activePage === 'profile' && (
-            <Profile
-              session={session}
-              userProfile={userProfile}
-              setUserProfile={setUserProfile}
-              userCart={userCart}
-              setUserCart={setUserCart}
-              userWishlist={userWishlist}
-              onWishlistUpdate={refreshWishlist}
-            />
-          )}
-
-          {activePage === 'admin' && (
-            <AdminPanel />
-          )}
-        </>
-      )}
+        <Route path="/admin" element={
+          <AdminPanel />
+        } />
+      </Routes>
 
       {activeModal === 'login' && (
         <LoginModal 
@@ -332,7 +320,7 @@ function App() {
           onLoginClick={() => setActiveModal('login')}
         />
       )}
-    </>
+    </div>
   );
 }
 

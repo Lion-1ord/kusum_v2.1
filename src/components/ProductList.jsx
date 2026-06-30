@@ -2,17 +2,26 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import ProductCard from './ProductCard';
 
-export default function ProductList({ onProductClick }) {
+export default function ProductList({ onProductClick, appMode }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchProducts() {
+      setLoading(true);
       try {
-        const { data, error } = await supabase
+        let query = supabase
           .from('products')
-          .select('product_id, product_name, product_media1, product_saleprice, product_offerprice, product_instock')
+          .select('product_id, product_name, product_media1, product_saleprice, product_offerprice, product_instock, product_rui')
           .order('product_name', { ascending: true });
+
+        if (appMode === 'budget') {
+          query = query.eq('product_rui', true);
+        } else {
+          query = query.or('product_rui.eq.false,product_rui.is.null');
+        }
+
+        const { data, error } = await query;
 
         if (error) throw error;
         setProducts(data || []);
@@ -24,7 +33,7 @@ export default function ProductList({ onProductClick }) {
     }
 
     fetchProducts();
-  }, []);
+  }, [appMode]);
 
   if (loading) {
     return (

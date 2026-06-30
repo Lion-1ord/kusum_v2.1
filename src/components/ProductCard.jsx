@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { calcDiscountPercent, formatPrice, hasOfferPrice } from '../utils/productHelpers';
 
 export default function ProductCard({ product, onClick, variant = 'grid' }) {
@@ -7,19 +8,8 @@ export default function ProductCard({ product, onClick, variant = 'grid' }) {
   const discount = showOffer ? calcDiscountPercent(salePrice, offerPrice) : null;
   const isInteractive = variant !== 'detail' && Boolean(onClick);
 
-  return (
-    <article
-      className={`product-card product-card--${variant}`}
-      onClick={isInteractive ? () => onClick(product.product_id) : undefined}
-      role={isInteractive ? 'button' : undefined}
-      tabIndex={isInteractive ? 0 : undefined}
-      onKeyDown={isInteractive ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick(product.product_id);
-        }
-      } : undefined}
-    >
+  const cardContent = (
+    <>
       <div className="product-card-image">
         {product.product_media1 ? (
           <img src={product.product_media1} alt={product.product_name} />
@@ -45,6 +35,20 @@ export default function ProductCard({ product, onClick, variant = 'grid' }) {
           <p className="product-card-discount">{discount}% off!</p>
         )}
       </div>
+    </>
+  );
+
+  if (isInteractive) {
+    return (
+      <Link to={`/product/${product.product_id}`} className={`product-card product-card--${variant}`} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column' }}>
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return (
+    <article className={`product-card product-card--${variant}`}>
+      {cardContent}
     </article>
   );
 }
